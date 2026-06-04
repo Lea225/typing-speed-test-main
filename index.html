@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/images/favicon-32x32.png">
+
+  <title>Frontend Mentor | Typing Speed Test</title>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <a class="skip-link" href="#test-area">Skip to typing test</a>
+
+  <header class="site-header">
+    <a href="index.html">
+      <div class="brand">
+      <picture class="brand__logo">
+        <source media="(min-width: 768px)" srcset="./assets/images/logo-large.svg">
+        <img src="./assets/images/logo-small.svg" alt="logo">
+      </picture>
+    </div>
+    </a>
+
+    <p class="personal-best">
+      <img class="personal-best__icon" src="./assets/images/icon-personal-best.svg" alt="personal-best" aria-hidden="true">
+      <span class="personal-best__label">Personal best:</span>
+      <span class="personal-best__label personal-best__label--short">Best:</span>
+      <span class="personal-best__value">
+        <span data-personal-best>--</span> WPM
+      </span>
+    </p>
+  </header>
+
+  <main class="app">
+
+    <section class="control-bar" aria-label="Test controls">
+
+      <div class="live-stats" aria-live="polite">
+        <p class="live-stats__item">
+          <span class="live-stats__label">WPM:</span>
+          <span class="live-stats__value" data-wpm>0</span>
+        </p>
+        <p class="live-stats__item">
+          <span class="live-stats__label">Accuracy:</span>
+          <span class="live-stats__value" data-accuracy>100%</span>
+        </p>
+        <p class="live-stats__item">
+          <span class="live-stats__label">Time:</span>
+          <span class="live-stats__value" data-time>0:60</span>
+        </p>
+      </div>
+
+      <div class="settings">
+
+        <div class="option-group" data-option-group="difficulty"
+          role="radiogroup" aria-labelledby="difficulty-legend">
+        <span class="option-group__legend" id="difficulty-legend">Difficulty:</span>
+
+          <button type="button" class="option-group__trigger" aria-expanded="false" aria-controls="difficulty-options">
+            <span data-selected-label>Hard</span>
+            <img src="./assets/images/icon-down-arrow.svg" alt="" aria-hidden="true">
+          </button>
+
+          <div class="option-group__options" id="difficulty-options">
+            <label class="option">
+              <input type="radio" name="difficulty" value="easy">
+              <span class="option__label">Easy</span>
+            </label>
+            <label class="option">
+              <input type="radio" name="difficulty" value="medium">
+              <span class="option__label">Medium</span>
+            </label>
+            <label class="option">
+              <input type="radio" name="difficulty" value="hard" checked>
+              <span class="option__label">Hard</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="option-group option-group--mode" data-option-group="mode" role="radiogroup" aria-labelledby="mode-legend">
+          <span class="option-group__legend" id="mode-legend">Mode:</span>
+
+          <button type="button" class="option-group__trigger" aria-expanded="false" aria-controls="mode-options">
+            <span data-selected-label>Timed (60s)</span>
+            <img src="./assets/images/icon-down-arrow.svg" alt="" aria-hidden="true">
+          </button>
+
+          <div class="option-group__options" id="mode-options">
+            <label class="option">
+              <input type="radio" name="mode" value="timed" checked>
+              <span class="option__label">Timed (60s)</span>
+            </label>
+            <label class="option">
+              <input type="radio" name="mode" value="passage">
+              <span class="option__label">Passage</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="test-area" id="test-area" data-state="idle">
+
+      <div class="passage-wrapper">
+        <p class="passage" data-passage tabindex="0" aria-label="Typing passage. Click and start typing to begin."></p>
+
+        <input
+          class="passage__input"
+          data-typing-input
+          type="text"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          aria-label="Type the passage here"
+        >
+
+        <div class="passage__start-overlay" data-start-overlay>
+          <button type="button" class="btn btn--primary" data-start-btn>Start Typing Test</button>
+          <p class="passage__hint">Or click the text and start typing</p>
+        </div>
+      </div>
+
+      <div class="test-area__footer" data-restart-wrapper hidden>
+        <button type="button" class="btn btn--ghost" data-restart-btn>
+          Restart Test
+          <img src="./assets/images/icon-restart.svg" alt="" aria-hidden="true">
+        </button>
+      </div>
+    </section>
+
+    <section class="results" data-results hidden aria-labelledby="results-title">
+
+      <img class="results__decoration results__decoration--star-1" src="./assets/images/pattern-star-1.svg" alt="" aria-hidden="true">
+      <img class="results__decoration results__decoration--star-2" src="./assets/images/pattern-star-2.svg" alt="" aria-hidden="true">
+
+      <img class="results__icon results__icon--complete" data-results-icon-complete src="./assets/images/icon-completed.svg" alt="" aria-hidden="true">
+      <img class="results__icon results__icon--new-pb" data-results-icon-new-pb src="./assets/images/icon-new-pb.svg" alt="" aria-hidden="true" hidden>
+
+      <h2 class="results__title" id="results-title" data-results-title>Test Complete!</h2>
+      <p class="results__message" data-results-message>Solid run. Keep pushing to beat your high score.</p>
+
+      <ul class="results__grid">
+        <li class="stat-card">
+          <p class="stat-card__label">WPM:</p>
+          <p class="stat-card__value" data-final-wpm>0</p>
+        </li>
+        <li class="stat-card">
+          <p class="stat-card__label">Accuracy:</p>
+          <p class="stat-card__value stat-card__value--accuracy" data-final-accuracy>0%</p>
+        </li>
+        <li class="stat-card">
+          <p class="stat-card__label">Characters</p>
+          <p class="stat-card__value stat-card__value--characters">
+            <span class="stat-card__correct" data-final-correct>0</span><span class="stat-card__sep">/</span><span class="stat-card__incorrect" data-final-incorrect>0</span>
+          </p>
+        </li>
+      </ul>
+
+      <button type="button" class="btn btn--light" data-again-btn>
+        <span data-again-label>Go Again</span>
+        <img src="./assets/images/icon-restart.svg" alt="" aria-hidden="true">
+      </button>
+    </section>
+
+    <div class="confetti" data-confetti hidden aria-hidden="true">
+      <img src="./assets/images/pattern-confetti.svg" alt="">
+    </div>
+
+  </main>
+
+  <script src="./script.js" defer></script>
+
+  <footer class="attribution">
+    Challenge by <a href="https://www.frontendmentor.io?ref=challenge">Frontend Mentor</a>.
+    Coded by <a href="#">Léa CHIDAS</a>.
+  </footer>
+
+</body>
+</html>
