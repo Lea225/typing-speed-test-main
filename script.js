@@ -6,9 +6,11 @@
   'use strict';
 
   /* ---------- Constants ---------- */
-  const TIMED_DURATION = 60;          // seconds for "Timed (60s)" mode
-  const STORAGE_KEY    = 'tst:personalBest';
-  const TICK_MS        = 100;         // stat refresh while typing
+  const TIMED_DURATION   = 60;          // seconds for "Timed (60s)" mode
+  const STORAGE_KEY      = 'tst:personalBest';
+  const HISTORY_KEY      = 'tst:history';
+  const HISTORY_MAX      = 10;          // keep the last N tests
+  const TICK_MS          = 100;         // stat refresh while typing
 
   const MESSAGES = {
     complete: {
@@ -64,6 +66,11 @@
 
     // Confetti
     confetti: $('[data-confetti]'),
+
+    // History
+    history:        $('[data-history]'),
+    historyList:    $('[data-history-list]'),
+    clearHistoryBtn:$('[data-clear-history]'),
   };
 
   /* ---------- State ---------- */
@@ -81,6 +88,7 @@
     tickId: null,
     testState: 'idle',       // 'idle' | 'typing' | 'done'
     personalBest: null,      // int (WPM) or null
+    history: [],             // array of past results, most recent first
   };
 
   /* =========================================================
@@ -90,6 +98,8 @@
     bindUI();
     syncSelectedFromInputs();
     loadPersonalBest();
+    loadHistory();
+    renderHistory();
     await loadPassages();
     pickPassage();
   }
@@ -130,7 +140,15 @@
     for (const ch of state.passage) {
       const span = document.createElement('span');
       span.className = 'char';
-      span.textContent = ch;
+      if (ch === '\n') {
+        // Mark as paragraph break — CSS gives it block layout + extra spacing.
+        // The newline char itself is preserved in textContent so the cursor
+        // highlight has something to land on and input.value still matches.
+        span.classList.add('char--break');
+        span.textContent = '\n';
+      } else {
+        span.textContent = ch;
+      }
       frag.appendChild(span);
       state.chars.push(span);
     }
@@ -352,6 +370,95 @@ function formatTime(totalSeconds) {
     els.pb.textContent = state.personalBest === null ? '--' : String(state.personalBest);
   }
 
+  /* =========================================================
+     History
+     ========================================================= */
+  function loadHistory() {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      state.history = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(state.history)) state.history = [];
+    } catch {
+      state.history = [];
+    }
+  }
+
+  function saveHistory() {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
+  }
+
+  function pushHistory(entry) {
+    // Most recent first, cap at HISTORY_MAX
+    state.history.unshift(entry);
+    if (state.history.length > HISTORY_MAX) state.history.length = HISTORY_MAX;
+    saveHistory();
+    renderHistory();
+  }
+
+  function clearHistory() {
+    state.history = [];
+    saveHistory();
+    renderHistory();
+  }
+
+  function formatHistoryDate(ts) {
+    const d = new Date(ts);
+    const date = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    return `${date} · ${time}`;
+  }
+
+  function renderHistory() {
+    if (!state.history.length) {
+      els.history.hidden = true;
+      els.historyList.innerHTML = '';
+      return;
+    }
+    els.history.hidden = false;
+
+    // Find the best WPM in the visible list to highlight it
+    const bestWpm = state.history.reduce((m, e) => Math.max(m, e.wpm), 0);
+
+    const frag = document.createDocumentFragment();
+    state.history.forEach((entry, i) => {
+      const li = document.createElement('li');
+      li.className = 'history-row';
+      if (entry.wpm === bestWpm) li.classList.add('history-row--best');
+
+      const idx = document.createElement('span');
+      idx.className = 'history-row__index';
+      idx.textContent = `#${i + 1}`;
+
+      const meta = document.createElement('div');
+      meta.className = 'history-row__meta';
+
+      const time = document.createElement('time');
+      time.className = 'history-row__time';
+      time.dateTime = new Date(entry.ts).toISOString();
+      time.textContent = formatHistoryDate(entry.ts);
+
+      const tag = document.createElement('span');
+      tag.className = 'history-row__tag';
+      tag.textContent = `${entry.difficulty} · ${entry.mode}`;
+
+      meta.append(time, tag);
+
+      const wpm = document.createElement('span');
+      wpm.className = 'history-row__wpm';
+      wpm.textContent = `${entry.wpm} WPM`;
+
+      const acc = document.createElement('span');
+      acc.className = 'history-row__acc';
+      acc.textContent = `${entry.accuracy}%`;
+
+      li.append(idx, meta, wpm, acc);
+      frag.appendChild(li);
+    });
+
+    els.historyList.innerHTML = '';
+    els.historyList.appendChild(frag);
+  }
+
   function showResults() {
     const wpm = computeWPM();
     const acc = computeAccuracy();
@@ -369,6 +476,17 @@ function formatTime(totalSeconds) {
     } else {
       variant = 'complete';
     }
+
+    // Record this test in history
+    pushHistory({
+      ts:         Date.now(),
+      mode:       state.mode,
+      difficulty: state.difficulty,
+      wpm,
+      accuracy:   acc,
+      correct,
+      incorrect,
+    });
 
     // Apply variant
     els.results.dataset.variant = variant;
@@ -467,6 +585,11 @@ function formatTime(totalSeconds) {
     });
     els.restartBtn.addEventListener('click', restartTest);
     els.againBtn.addEventListener('click', restartTest);
+
+    // History
+    els.clearHistoryBtn?.addEventListener('click', () => {
+      if (confirm('Clear all recent test history?')) clearHistory();
+    });
 
     // Click on passage focuses input (and starts the test)
     els.passage.addEventListener('click', onPassageClick);

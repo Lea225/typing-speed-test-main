@@ -106,18 +106,23 @@
     <section class="test-area" id="test-area" data-state="idle">
 
       <div class="passage-wrapper">
-        <p class="passage" data-passage tabindex="0" aria-label="Typing passage. Click and start typing to begin."></p>
+        <!-- Static reference text. NOT focusable: the <input> below owns focus.
+             Still readable by screen readers as normal document content;
+             the input references it via aria-describedby so AT users hear
+             the passage when they focus the input. -->
+        <p class="passage" id="passage-text" data-passage></p>
 
-        <input
+        <textarea
           class="passage__input"
           data-typing-input
-          type="text"
+          rows="1"
           autocomplete="off"
           autocorrect="off"
           autocapitalize="off"
           spellcheck="false"
-          aria-label="Type the passage here"
-        >
+          aria-label="Type to begin the typing test"
+          aria-describedby="passage-text"
+        ></textarea>
 
         <div class="passage__start-overlay" data-start-overlay>
           <button type="button" class="btn btn--primary" data-start-btn>Start Typing Test</button>
@@ -165,6 +170,16 @@
         <span data-again-label>Go Again</span>
         <img src="./assets/images/icon-restart.svg" alt="" aria-hidden="true">
       </button>
+    </section>
+
+    <section class="history" data-history hidden aria-labelledby="history-title">
+      <header class="history__header">
+        <h2 class="history__title" id="history-title">Recent Tests</h2>
+        <button type="button" class="btn btn--ghost btn--sm" data-clear-history>
+          Clear
+        </button>
+      </header>
+      <ol class="history__list" data-history-list></ol>
     </section>
 
     <div class="confetti" data-confetti hidden aria-hidden="true">
